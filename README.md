@@ -5,6 +5,10 @@
 2. We need to register the API key for GROQ_API_KEY and ELEVENLABS_API_KEY to run the code. These API keys are free.
 3. only .py code files are related to our project. Others are just some output audio files.
 
+This the original Github repo from the youtube:
+https://github.com/AIwithhassan/ai-doctor-2.0-voice-and-vision
+
+We’ve removed redundant code and files from our repo. We can start with this bare minimum and build on it.
 
 ## Overview
 This project aims to build a **Medical ChatBot** using a **Multimodal Large Language Model (LLM)**. The chatbot will be capable of processing text and voice inputs from patients and generating text and voice responses as a virtual doctor. 
