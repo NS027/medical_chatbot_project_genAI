@@ -1,5 +1,11 @@
 # Medical ChatBot with Multimodal LLM
 
+## A quick note from Siyun:
+1. create a new envionment (use python 3.11) first and run the requirements.txt to install all package.
+2. We need to register the API key for GROQ_API_KEY and ELEVENLABS_API_KEY to run the code. These API keys are free.
+3. only .py code files are related to our project. Others are just some output audio files.
+
+
 ## Overview
 This project aims to build a **Medical ChatBot** using a **Multimodal Large Language Model (LLM)**. The chatbot will be capable of processing text and voice inputs from patients and generating text and voice responses as a virtual doctor. 
 
