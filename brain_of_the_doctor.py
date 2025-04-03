@@ -1,8 +1,14 @@
-# if you dont use pipenv uncomment the following:
+# Additional imports for NLP
+import spacy
+
+# Load English tokenizer, tagger, parser, NER and word vectors
+nlp = spacy.load("en_core_web_sm")
+
+# Existing imports
 from dotenv import load_dotenv
 load_dotenv()
 
-#Step1: Setup GROQ API key
+# Step1: Setup GROQ API key
 import os
 
 # Access API Key
@@ -11,30 +17,27 @@ GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 if GROQ_API_KEY is None:
     raise ValueError("GROQ_API_KEY is not set.")
 
-#Step2: Convert image to required format
+# Step2: Convert image to required format
 import base64
 
-
-#image_path="acne.jpg"
-
-def encode_image(image_path):   
+def encode_image(image_path):
     image_file=open(image_path, "rb")
     return base64.b64encode(image_file.read()).decode('utf-8')
 
-#Step3: Setup Multimodal LLM 
+# Step3: Setup Multimodal LLM
 from groq import Groq
 
 query="Is there something wrong with my face?"
 model="llama-3.2-90b-vision-preview"
 
 def analyze_image_with_query(query, model, encoded_image):
-    client=Groq()  
+    client=Groq()
     messages=[
         {
             "role": "user",
             "content": [
                 {
-                    "type": "text", 
+                    "type": "text",
                     "text": query
                 },
                 {
@@ -51,3 +54,13 @@ def analyze_image_with_query(query, model, encoded_image):
     )
 
     return chat_completion.choices[0].message.content
+
+def summarize_doctor_response(response_text, num_sentences=2):
+    """Summarizes the response by selecting the most relevant sentences."""
+    doc = nlp(response_text)
+    sentences = [sent.text.strip() for sent in doc.sents]
+
+    # Return the first 'num_sentences' sentences as a simple summary
+    summary = " ".join(sentences[:num_sentences]) if sentences else "No summary available."
+    
+    return summary

@@ -61,5 +61,5 @@ def transcribe_with_groq(stt_model, audio_filepath, GROQ_API_KEY):
         file=audio_file,
         language="en"
     )
-
+    # Return the transcription text
     return transcription.text

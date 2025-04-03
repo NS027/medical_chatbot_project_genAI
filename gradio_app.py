@@ -6,7 +6,7 @@ load_dotenv()
 import os
 import gradio as gr
 
-from brain_of_the_doctor import encode_image, analyze_image_with_query
+from brain_of_the_doctor import encode_image, analyze_image_with_query, summarize_doctor_response
 from voice_of_the_patient import transcribe_with_groq
 from voice_of_the_doctor import text_to_speech_with_elevenlabs
 
@@ -22,7 +22,7 @@ system_prompt="""You have to act as a professional doctor, i know you are not bu
 
 
 def process_inputs(audio_filepath, image_filepath):
-    speech_to_text_output = transcribe_with_groq(GROQ_API_KEY=os.environ.get("GROQ_API_KEY"), 
+    speech_to_text_output = transcribe_with_groq(GROQ_API_KEY=os.environ.get("GROQ_API_KEY"),
                                                  audio_filepath=audio_filepath,
                                                  stt_model="whisper-large-v3")
 
@@ -32,12 +32,14 @@ def process_inputs(audio_filepath, image_filepath):
     else:
         doctor_response = "No image provided for me to analyze"
 
-    voice_of_doctor = text_to_speech_with_elevenlabs(input_text=doctor_response, output_filepath="final.mp3") 
+    # New feature: Summarize the doctor's response
+    summary = summarize_doctor_response(doctor_response)
 
-    return speech_to_text_output, doctor_response, voice_of_doctor
+    voice_of_doctor = text_to_speech_with_elevenlabs(input_text=doctor_response, output_filepath="final.mp3")
 
+    return speech_to_text_output, doctor_response, voice_of_doctor, summary
 
-# Create the interface
+# Modify the Gradio outputs to include the new textbox for the summary
 iface = gr.Interface(
     fn=process_inputs,
     inputs=[
@@ -47,7 +49,8 @@ iface = gr.Interface(
     outputs=[
         gr.Textbox(label="Speech to Text"),
         gr.Textbox(label="Doctor's Response"),
-        gr.Audio("Temp.mp3")
+        gr.Audio("final.mp3"),
+        gr.Textbox(label="Summary")
     ],
     title="AI Doctor with Vision and Voice"
 )
