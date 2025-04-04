@@ -10,8 +10,18 @@ This the original Github repo from the youtube:
 https://github.com/AIwithhassan/ai-doctor-2.0-voice-and-vision
 
 We’ve removed redundant code and files from our repo. We can start with this bare minimum and build on it. <br>
+
 ### progress 2:
-Add a funcionality: summary. Summerize the doctor's reponse using Spacy model. Update the gradio interface accordingly.
+Add a functionality: summary. Summerize the doctor's reponse using Spacy model. Update the gradio interface accordingly. Experiment with two method:
+1. Spacy: This approach extracts key sentences based on importance and length. (Simple and keeps only the first two sentences as a summary.)
+2. BART: LLM that has stronger ability ( high-quality, abstractive summary that paraphrases and condenses the content)
+
+### progress 3:
+Add translation functionality. Experiment two method. Translator from googletrans package and MarianMTModel from transformer:
+Googletrans supports more languages but the newest version only Coroutine. Cannot output text directly. The older version can output text directly, but if using the old version will cause version conflict with other packages in our dev environment.
+
+### progess 4:
+updata UI. Make it prettier(desing, colors, and font) and more user-friendly. 
 
 ## Overview
 This project aims to build a **Medical ChatBot** using a **Multimodal Large Language Model (LLM)**. The chatbot will be capable of processing text and voice inputs from patients and generating text and voice responses as a virtual doctor. 
