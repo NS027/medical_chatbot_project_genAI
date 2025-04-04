@@ -1,6 +1,6 @@
 # if you dont use pipenv uncomment the following:
-from dotenv import load_dotenv
-load_dotenv()
+# from dotenv import load_dotenv
+# load_dotenv()
 
 input_text="Hi, this is Group 7’s AI Doctor for the final project!"
 
@@ -11,18 +11,6 @@ from elevenlabs.client import ElevenLabs
 import os
 
 ELEVENLABS_API_KEY=os.environ.get("ELEVENLABS_API_KEY")
-
-def text_to_speech_with_elevenlabs_old(input_text, output_filepath):
-    client=ElevenLabs(api_key=ELEVENLABS_API_KEY)
-    audio=client.generate(
-        text= input_text,
-        voice= "Aria",
-        output_format= "mp3_22050_32",
-        model= "eleven_turbo_v2"
-    )
-    elevenlabs.save(audio, output_filepath)
-
-text_to_speech_with_elevenlabs_old(input_text, output_filepath="elevenlabs_testing.mp3") 
 
 #Step2: Use Model for Text output to Voice
 

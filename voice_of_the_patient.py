@@ -1,6 +1,6 @@
 # if you dont use pipenv uncomment the following:
-from dotenv import load_dotenv
-load_dotenv()
+# from dotenv import load_dotenv
+# load_dotenv()
 
 #Step1: Setup Audio recorder (ffmpeg & portaudio)
 # ffmpeg, portaudio, pyaudio
@@ -24,13 +24,10 @@ def record_audio(file_path, timeout=20, phrase_time_limit=None):
     
     try:
         with sr.Microphone() as source:
-            logging.info("Adjusting for ambient noise...")
             recognizer.adjust_for_ambient_noise(source, duration=1)
-            logging.info("Start speaking now...")
             
             # Record the audio
             audio_data = recognizer.listen(source, timeout=timeout, phrase_time_limit=phrase_time_limit)
-            logging.info("Recording complete.")
             
             # Convert the recorded audio to an MP3 file
             wav_data = audio_data.get_wav_data()
@@ -61,5 +58,5 @@ def transcribe_with_groq(stt_model, audio_filepath, GROQ_API_KEY):
         file=audio_file,
         language="en"
     )
-
+    # Return the transcription text
     return transcription.text
