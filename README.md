@@ -102,26 +102,6 @@ Activate the virtual environment using:
 myenv\Scripts\activate
 ```
 
-### 2. If you need to run the Jupyter Notebook
-
-Navigate to your project directory:
-
-```bash
-cd path/to/your/file/
-```
-
-Create a Conda environment with Python 3.11:
-
-```bash
-conda create --prefix ./venv python=3.11
-```
-
-#### To activate the environment:
-
-```bash
-conda activate ./venv
-```
-
 ### The Requirements
 
 To install the required packages, run:
@@ -129,6 +109,57 @@ To install the required packages, run:
 ```bash
 pip install -r requirements.txt
 ```
+
+### 2. If you need to run under a Conda environment
+
+Navigate to your project directory:
+
+```
+cd path/to/your/file/
+```
+
+Create a Conda environment with Python 3.11:
+
+```
+conda create --prefix ./venv python=3.11
+```
+
+Activate the environment:
+
+```
+conda activate ./venv
+```
+
+---
+
+### 📦 Install Requirements
+
+Install the Python packages listed in the cleaned requirements file:
+
+```
+pip install -r requirements_conda.txt
+```
+
+---
+
+### 🔊 Install PyAudio (using Conda)
+
+To avoid build errors with PyAudio on macOS, install it via Conda:
+
+```
+conda install -c conda-forge pyaudio
+```
+
+---
+
+### 🌐 Install spaCy Language Model
+
+`en_core_web_sm` is not available on PyPI and must be installed using spaCy:
+
+```
+python -m spacy download en_core_web_sm
+```
+
 
 ### .env File
 
