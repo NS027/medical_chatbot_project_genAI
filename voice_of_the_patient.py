@@ -60,3 +60,7 @@ def transcribe_with_groq(stt_model, audio_filepath, GROQ_API_KEY):
     )
     # Return the transcription text
     return transcription.text
+
+if __name__ == "__main__":
+
+    demo.launch(debug=True)
