@@ -23,6 +23,12 @@ Googletrans supports more languages but the newest version only Coroutine. Canno
 ### progess 4:
 updata UI. Make it prettier(desing, colors, and font) and more user-friendly. 
 
+## progress 5:
+Add input text functionality
+
+## progress 6:
+Elevenlabs TTS model hit free tier limit easily. Test other TTS models and replace the eleven_turbo_v2 with gtts.
+
 ## Overview
 This project aims to build a **Medical ChatBot** using a **Multimodal Large Language Model (LLM)**. The chatbot will be capable of processing text and voice inputs from patients and generating text and voice responses as a virtual doctor. 
 
