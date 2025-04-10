@@ -3,9 +3,7 @@ import os
 from datasets import load_dataset
 from typing import List, Tuple
 
-# Import your evaluation function
-# (Paste or import evaluate_image_qa from your "evaluation.py". 
-#  We'll assume you have it in the same folder for demonstration.)
+# Import the evaluation function
 from evaluation_local import evaluate_image_qa
 
 def load_freedomintelligence_dataset(
@@ -39,16 +37,12 @@ def load_freedomintelligence_dataset(
 
         # 3) Extract the image file path
         #    By default, 'image' is a list containing one or more paths, e.g. ["images/ankle071718.png"]
-        #    We'll just take the first element if there's exactly one.
+
         if not example["image"]:
             # If there's no image path, skip or handle differently
             continue
 
-        image_path = example["image"][0]  # e.g. "images/ankle071718.png"
-
-        # Now you must ensure that "images/ankle071718.png" actually exists on disk. 
-        # If the dataset is local and the images folder is at the same level, then 
-        # "image_path" must be accessible for your 'encode_image' function to read it.
+        image_path = example["image"][0] 
 
         # Collect
         results.append((question, image_path, reference_answer))
@@ -61,14 +55,8 @@ if __name__ == "__main__":
     data_for_eval = load_freedomintelligence_dataset(split="train", sample_size=5)
 
     # 'data_for_eval' is now a list of (user_text, image_path, ref_answer)
-    # Example: 
-    # [
-    #   ("What can be observed in this image?", "images/ankle071718.png", "Plantar fascia pathology"),
-    #   ...
-    # ]
 
-    # 2) Call your evaluate_image_qa function from "evaluation.py"
-    #    We'll assume you want "fra" as target language for translation.
-    from evaluation_local import evaluate_image_qa  # if not already imported above
+    # 2) Call  evaluate_image_qa function from "evaluation.py"
+    from evaluation_local import evaluate_image_qa 
 
     evaluate_image_qa(data_for_eval, target_language="fra")
