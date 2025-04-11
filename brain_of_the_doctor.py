@@ -55,15 +55,116 @@ def analyze_image_with_query(query, model, encoded_image):
 
     return chat_completion.choices[0].message.content
 
+
+
+from transformers import AutoProcessor, PaliGemmaForConditionalGeneration
+from huggingface_hub import login
+import os
+from PIL import Image
+import torch
+
+# Load .env (optional if you use dotenv)
+from dotenv import load_dotenv
+load_dotenv()
+
+# Hugging Face Auth
+login(token=os.getenv("HF_TOKEN"))
+
+# Model ID
+model_id = "google/paligemma-3b-mix-224"
+
+# Load processor and model
+processor = AutoProcessor.from_pretrained(model_id, use_fast=True)
+model = PaliGemmaForConditionalGeneration.from_pretrained(model_id).eval()
+
+# Inference function
+# def analyze_with_gemma(query, image_path):
+#     image = Image.open(image_path).convert("RGB")
+
+#     # Add <image> token manually
+#     prompt = "<image> " + query
+
+#     inputs = processor(text=prompt, images=image, return_tensors="pt")
+#     input_len = inputs["input_ids"].shape[-1]
+
+#     with torch.inference_mode():
+#         output = model.generate(
+#             **inputs,
+#             max_new_tokens=512,
+#             do_sample=False
+#         )
+#         output = output[0][input_len:]  # skip prompt part
+#         response = processor.decode(output, skip_special_tokens=True)
+
+#     return response
+
+from transformers import AutoProcessor, PaliGemmaForConditionalGeneration
+from peft import PeftModel, PeftConfig
+from PIL import Image
+import torch
+
+# Load your LoRA model from HuggingFace
+model_id = "SiyunHE/medical-pilagemma-lora"
+base_model_id = "google/paligemma-3b-pt-224"
+
+# Load processor
+processor = AutoProcessor.from_pretrained(base_model_id, use_fast=True)
+
+# Load base model config from LoRA
+peft_config = PeftConfig.from_pretrained(model_id)
+
+# Load base model
+base_model = PaliGemmaForConditionalGeneration.from_pretrained(base_model_id)
+
+# Load LoRA weights
+model = PeftModel.from_pretrained(base_model, model_id).eval()
+
+# Inference function
+def analyze_with_gemma(query, image_path):
+    image = Image.open(image_path).convert("RGB")
+
+    prompt = "<image> " + query
+
+    inputs = processor(text=prompt, images=image, return_tensors="pt").to(model.device)
+    input_len = inputs["input_ids"].shape[-1]
+
+    with torch.inference_mode():
+        outputs = model.generate(
+            **inputs,
+            max_new_tokens=512,
+            do_sample=False
+        )
+        # Only keep new generated tokens
+        output = outputs[0][input_len:]
+
+        response = processor.decode(output, skip_special_tokens=True)
+
+    return response
+
+# def model_choice(query, image_path, model_choice="llama"):
+#     if model_choice == "llama":
+#         return analyze_image_with_query(query, image_path)
+#     elif model_choice == "gemma":
+#         return analyze_with_gemma(query, image_path)
+#     else:
+#         raise ValueError("Unsupported model choice.")
+
 from transformers import pipeline
 import os
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 # Initialize the summarizer
 summarizer = pipeline("summarization", model="facebook/bart-large-cnn")
 
-def summarize_doctor_response(response_text, max_length=50):
+def summarize_doctor_response(response_text):
     """Summarize the response in real-time."""
-    summary = summarizer(response_text, max_length=max_length, min_length=20, do_sample=False)
+    # if reponse_text is less than 20 words, return it as is
+    if len(response_text.split()) < 20:
+        return response_text
+    # calculate max_length to be 50% of the response length
+    max_length = int(len(response_text.split()) * 0.2)
+    # calculate min_length to be 20% of the response length
+    min_length = int(len(response_text.split()) * 0.1) 
+    summary = summarizer(response_text, max_length, min_length, do_sample=False)
     return summary[0]["summary_text"]
 
 # Translation

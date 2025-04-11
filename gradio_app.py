@@ -6,19 +6,27 @@
 import os
 import gradio as gr
 
-from brain_of_the_doctor import encode_image, analyze_image_with_query, summarize_doctor_response, translate_response
+from brain_of_the_doctor import encode_image, analyze_image_with_query, summarize_doctor_response, translate_response, analyze_with_gemma
 from voice_of_the_patient import transcribe_with_groq
 from voice_of_the_doctor import text_to_speech_with_gtts
 
-system_prompt="""You have to act as a professional doctor, i know you are not but this is for learning purpose.
-            What's in this image?. Do you find anything wrong with it medically?
-            If you make a differential, suggest some remedies for them. Donot add any numbers or special characters in
-            your response. Your response should be in one long paragraph. Also always answer as if you are answering to a real person.
-            Donot say 'In the image I see' but say 'With what I see, I think you have ....'
-            Dont respond as an AI model in markdown, your answer should mimic that of an actual doctor not an AI bot,
-            Keep your answer concise (max 2 sentences). No preamble, start your answer right away please"""
+system_prompt = """
+Act as a professional medical doctor. Analyze the uploaded image carefully.
 
-def process_inputs(audio_filepath, image_filepath, target_language, user_text=None):
+If there is anything medically concerning, describe it in simple, human-friendly language. If applicable, suggest possible conditions (differential diagnosis) and potential remedies.
+
+Guidelines for your response:
+- Do not include any numbers, symbols, or special characters.
+- Respond in a single, natural paragraph (maximum 2 sentences).
+- Never say phrases like 'In the image I see'. Instead, start directly with statements like 'With what I see, I think you have...'
+- Never mention you are an AI or language model.
+- Do not use markdown formatting.
+- Write as if speaking directly to a patient in a real consultation.
+- Be clear, concise, and warm.
+"""
+# system_prompt_gemma="""You have to act as a professional doctor and analyze the image.
+#             What's in this image?. Do you find anything wrong with it medically?"""
+def process_inputs(audio_filepath, image_filepath, target_language, user_text=None, model_choice="llama"):
     if user_text:
         user_input = user_text
     elif audio_filepath:
@@ -30,14 +38,23 @@ def process_inputs(audio_filepath, image_filepath, target_language, user_text=No
     else:
         return "No input provided", "No response", "No summary", "No translation"
 
-    if image_filepath:
-        doctor_response = analyze_image_with_query(
-            query=system_prompt + user_input,
-            encoded_image=encode_image(image_filepath),
-            model="llama-3.2-11b-vision-preview"
-        )
-    else:
+    if not image_filepath:
         doctor_response = "No image provided for me to analyze"
+    else:
+        # Different model choices
+        if model_choice == "llama (advance)":
+            doctor_response = analyze_image_with_query(
+                query=system_prompt + user_input,
+                encoded_image=encode_image(image_filepath),  # Base64 for Groq
+                model="llama-3.2-11b-vision-preview"
+            )
+        elif model_choice == "gemma (basic)":
+            doctor_response = analyze_with_gemma(
+                query=user_input,
+                image_path=image_filepath,  
+            )
+        else:
+            doctor_response = "Invalid model choice."
 
     # Summarize the response
     summary = summarize_doctor_response(doctor_response)
@@ -79,19 +96,26 @@ with gr.Blocks(theme=gr.themes.Soft(primary_hue="purple", secondary_hue="blue"))
 
         with gr.Row():
             translated_response = gr.Textbox(label="Translated Response")
+            
             language_dropdown = gr.Dropdown(
                 choices=["ita", "spa", "fra"],
                 value="fra",
                 label="Select translation language"
             )
+            model_dropdown = gr.Dropdown(
+                    choices=["llama (advance)", "gemma (basic)"],
+                    value="llama (advance)",
+                    label="Choose Model"
+                )
+            
 
         process_button = gr.Button("Diagnose")
 
         process_button.click(
-            fn=process_inputs,
-            inputs=[audio_input, image_input, language_dropdown, text_input],
-            outputs=[speech_to_text_output, doctor_response, summary, translated_response]
-        )
+        fn=process_inputs,
+        inputs=[audio_input, image_input, language_dropdown, text_input, model_dropdown],
+        outputs=[speech_to_text_output, doctor_response, summary, translated_response]
+    )
 
 if __name__ == "__main__":
     demo.launch(debug=True)

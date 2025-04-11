@@ -40,6 +40,19 @@ Elevenlabs TTS model hit free tier limit easily. Test other TTS models and repla
 ### Overview
 
 This project aims to build a **Medical ChatBot** using a **Multimodal Large Language Model (LLM)**. The chatbot will be capable of processing text and voice inputs from patients and generating text and voice responses as a virtual doctor.
+## progress 7:
+Create our own data:
+https://huggingface.co/datasets/SiyunHE/medical-pilagemma-lora
+original image data can be found here: https://github.com/AkashGhosh/CLIPSyntel-AAAI2024
+I use gpt-4o to synthesis the question and response data.
+
+## progress 8:
+Use lora to fine tune the pilaGemma for medical image from patients
+here is our own model:
+https://huggingface.co/SiyunHE/medical-pilagemma-lora
+
+## Overview
+This project aims to build a **Medical ChatBot** using a **Multimodal Large Language Model (LLM)**. The chatbot will be capable of processing text and voice inputs from patients and generating text and voice responses as a virtual doctor. 
 
 ## Features
 
