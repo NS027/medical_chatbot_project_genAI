@@ -70,12 +70,12 @@ load_dotenv()
 # Hugging Face Auth
 login(token=os.getenv("HF_TOKEN"))
 
-# Model ID
-model_id = "google/paligemma-3b-mix-224"
+# # Model ID
+# model_id = "google/paligemma-3b-mix-224"
 
-# Load processor and model
-processor = AutoProcessor.from_pretrained(model_id, use_fast=True)
-model = PaliGemmaForConditionalGeneration.from_pretrained(model_id).eval()
+# # Load processor and model
+# processor = AutoProcessor.from_pretrained(model_id, use_fast=True)
+# model = PaliGemmaForConditionalGeneration.from_pretrained(model_id).eval()
 
 # Inference function
 # def analyze_with_gemma(query, image_path):
@@ -122,7 +122,7 @@ model = PeftModel.from_pretrained(base_model, model_id).eval()
 # Inference function
 def analyze_with_gemma(query, image_path):
     image = Image.open(image_path).convert("RGB")
-
+    query = query.strip()
     prompt = "<image> " + query
 
     inputs = processor(text=prompt, images=image, return_tensors="pt").to(model.device)
