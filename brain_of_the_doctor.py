@@ -1,59 +1,101 @@
 # Additional imports for NLP
 import spacy
+import os
+import json
+import base64
+import requests
+from dotenv import load_dotenv
 
 # Load English tokenizer, tagger, parser, NER and word vectors
 nlp = spacy.load("en_core_web_sm")
 
-# Existing imports
-from dotenv import load_dotenv
-load_dotenv()
-
 # Step1: Setup GROQ API key
-import os
+# import os
 
-# Access API Key
-GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+# # Access API Key
+# GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
-if GROQ_API_KEY is None:
-    raise ValueError("GROQ_API_KEY is not set.")
+# if GROQ_API_KEY is None:
+#     raise ValueError("GROQ_API_KEY is not set.")
+
+# Step1: Setup OpenRouter API key
+load_dotenv()  
+
+OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
+
+if OPENROUTER_API_KEY is None:
+    raise ValueError("OPENROUTER_API_KEY is not set.")
 
 # Step2: Convert image to required format
-import base64
-
 def encode_image(image_path):
     image_file=open(image_path, "rb")
     return base64.b64encode(image_file.read()).decode('utf-8')
 
-# Step3: Setup Multimodal LLM
-from groq import Groq
+### We use Groq API to call LLaMA 3.2 90B Vision-Instruct model. But on April 16, 2025, we found that the model is no longer supported by Groq API.###
+# # Step3: Setup Multimodal LLM
+# from groq import Groq
 
-query="Is there something wrong with my face?"
-model="llama-3.2-90b-vision-preview"
+# query="Is there something wrong with my face?"
+# model="llama-3.2-90b-vision-preview"
 
-def analyze_image_with_query(query, model, encoded_image):
-    client=Groq()
-    messages=[
-        {
-            "role": "user",
-            "content": [
-                {
-                    "type": "text",
-                    "text": query
-                },
-                {
-                    "type": "image_url",
-                    "image_url": {
-                        "url": f"data:image/jpeg;base64,{encoded_image}",
-                    },
-                },
-            ],
-        }]
-    chat_completion=client.chat.completions.create(
-        messages=messages,
-        model=model
+# def analyze_image_with_query(query, model, encoded_image):
+#     client=Groq()
+#     messages=[
+#         {
+#             "role": "user",
+#             "content": [
+#                 {
+#                     "type": "text",
+#                     "text": query
+#                 },
+#                 {
+#                     "type": "image_url",
+#                     "image_url": {
+#                         "url": f"data:image/jpeg;base64,{encoded_image}",
+#                     },
+#                 },
+#             ],
+#         }]
+#     chat_completion=client.chat.completions.create(
+#         messages=messages,
+#         model=model
+#     )
+
+#     return chat_completion.choices[0].message.content
+
+# Step 3: Use OpenRouter API to analyze image + text
+def analyze_image_with_query(query, encoded_image):
+    headers = {
+        "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+        "Content-Type": "application/json",
+    }
+
+    # Convert image to data URI format
+    image_data_uri = f"data:image/jpeg;base64,{encoded_image}"
+
+    payload = {
+        "model": "meta-llama/llama-3.2-90b-vision-instruct",
+        "messages": [
+            {
+                "role": "user",
+                "content": [
+                    {"type": "text", "text": query},
+                    {"type": "image_url", "image_url": {"url": image_data_uri}}
+                ]
+            }
+        ]
+    }
+
+    response = requests.post(
+        url="https://openrouter.ai/api/v1/chat/completions",
+        headers=headers,
+        data=json.dumps(payload)
     )
 
-    return chat_completion.choices[0].message.content
+    if response.status_code == 200:
+        return response.json()["choices"][0]["message"]["content"]
+    else:
+        raise Exception(f"OpenRouter request failed: {response.status_code} - {response.text}")
 
 
 
@@ -63,40 +105,12 @@ import os
 from PIL import Image
 import torch
 
-# Load .env (optional if you use dotenv)
-from dotenv import load_dotenv
-load_dotenv()
+# # Load .env (optional if you use dotenv)
+# from dotenv import load_dotenv
+# load_dotenv()
 
 # Hugging Face Auth
 login(token=os.getenv("HF_TOKEN"))
-
-# # Model ID
-# model_id = "google/paligemma-3b-mix-224"
-
-# # Load processor and model
-# processor = AutoProcessor.from_pretrained(model_id, use_fast=True)
-# model = PaliGemmaForConditionalGeneration.from_pretrained(model_id).eval()
-
-# Inference function
-# def analyze_with_gemma(query, image_path):
-#     image = Image.open(image_path).convert("RGB")
-
-#     # Add <image> token manually
-#     prompt = "<image> " + query
-
-#     inputs = processor(text=prompt, images=image, return_tensors="pt")
-#     input_len = inputs["input_ids"].shape[-1]
-
-#     with torch.inference_mode():
-#         output = model.generate(
-#             **inputs,
-#             max_new_tokens=512,
-#             do_sample=False
-#         )
-#         output = output[0][input_len:]  # skip prompt part
-#         response = processor.decode(output, skip_special_tokens=True)
-
-#     return response
 
 from transformers import AutoProcessor, PaliGemmaForConditionalGeneration
 from peft import PeftModel, PeftConfig
@@ -141,14 +155,8 @@ def analyze_with_gemma(query, image_path):
 
     return response
 
-# def model_choice(query, image_path, model_choice="llama"):
-#     if model_choice == "llama":
-#         return analyze_image_with_query(query, image_path)
-#     elif model_choice == "gemma":
-#         return analyze_with_gemma(query, image_path)
-#     else:
-#         raise ValueError("Unsupported model choice.")
 
+# Step4: Summarize the response
 from transformers import pipeline
 import os
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
@@ -167,7 +175,7 @@ def summarize_doctor_response(response_text):
     summary = summarizer(response_text, max_length, min_length, do_sample=False)
     return summary[0]["summary_text"]
 
-# Translation
+# Step5: Translate the response
 from transformers import MarianMTModel, MarianTokenizer
 
 def translate_response(response_text, target_language):
@@ -185,10 +193,6 @@ def translate_response(response_text, target_language):
     # Load the tokenizer and model
     tokenizer = MarianTokenizer.from_pretrained(model_name)
     model = MarianMTModel.from_pretrained(model_name)
-
-    # Print supported language codes for reference
-    # You can remove or comment out this line in production
-    print("Supported Language Codes:", tokenizer.supported_language_codes)
 
     # Check if the target language is supported
     if f'>>{target_language}<<' not in tokenizer.supported_language_codes:
