@@ -74,7 +74,7 @@ def analyze_image_with_query(query, encoded_image):
     image_data_uri = f"data:image/jpeg;base64,{encoded_image}"
 
     payload = {
-        "model": "meta-llama/llama-3.2-11b-vision-instruct:free",
+        "model": "meta-llama/llama-3.2-11b-vision-instruct", # free version: meta-llama/llama-3.2-11b-vision-instruct:free
         "messages": [
             {
                 "role": "user",
