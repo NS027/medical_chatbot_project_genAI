@@ -46,7 +46,7 @@ def process_inputs(audio_filepath, image_filepath, target_language, user_text=No
             doctor_response = analyze_image_with_query(
                 query=system_prompt + user_input,
                 encoded_image=encode_image(image_filepath),  # Base64 for Groq
-                #model="llama-3.2-11b-vision-preview"
+                #model="meta-llama/llama-3.2-11b-vision-instruct:free"
             )
         elif model_choice == "gemma (basic)":
             doctor_response = analyze_with_gemma(

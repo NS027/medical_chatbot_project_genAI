@@ -9,23 +9,26 @@ Original file is located at
 
 
 
-"""# Evaluate and compare the response quality of llama-3.2-90b-vision-preview and MMed-LLaMA 3 on the VQA dataset we created"""
+"""# Evaluate and compare the response quality of llama-3.2-11b-vision-preview and MMed-LLaMA 3 on the VQA dataset we created"""
 
-!pip install datasets groq bert_score tqdm matplotlib seaborn torch transformers
+!pip install datasets groq bert_score tqdm matplotlib seaborn torch transformers dotenv
 
-# Compare LLaMA 3.2 90B vs MMed-LLaMA 3 on Medical VQA Dataset
+# Compare LLaMA 3.2 11B vs MMed-LLaMA 3 on Medical VQA Dataset
 
 import os
 import base64
 from io import BytesIO
 from datasets import load_dataset
-from groq import Groq
 from bert_score import score
 from tqdm import tqdm
 import matplotlib.pyplot as plt
 import seaborn as sns
 import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM
+import requests
+import json
+from PIL import Image
+from dotenv import load_dotenv
 
 # Load Dataset
 print("Loading dataset...")
@@ -33,36 +36,72 @@ dataset = load_dataset("SiyunHE/medical-pilagemma-lora", split="train")
 
 sampled_data = dataset.shuffle(seed=42).select(range(30))
 
-# GROQ API Key
-groq_api_key = "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"
-client_groq = Groq(api_key=groq_api_key)
-
 # Load MMed-LLaMA 3 model locally
 model_id = "Henrychur/MMed-Llama-3-8B"
 tokenizer = AutoTokenizer.from_pretrained(model_id)
 model = AutoModelForCausalLM.from_pretrained(model_id, torch_dtype=torch.float16).cuda().eval()
 
-# Encode PIL Image to base64
-def encode_pil_image(pil_image):
+def encode_image(pil_image):
     buffered = BytesIO()
     pil_image.save(buffered, format="JPEG")
     return base64.b64encode(buffered.getvalue()).decode("utf-8")
 
-# Generation Functions
+# Load OpenRouter API key securely from environment variable
+load_dotenv()
+OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
+
+if not OPENROUTER_API_KEY:
+    raise ValueError("OPENROUTER_API_KEY not set in .env file.")
 
 def analyze_image_with_llama(query, image):
-    encoded_image = encode_pil_image(image)
-    messages = [{"role": "user", "content": [
-        {"type": "text", "text": query},
-        {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{encoded_image}"}},
-    ]}]
+    """
+    Sends a vision-language prompt to OpenRouter's LLaMA 3.2 model with image input.
 
-    response = client_groq.chat.completions.create(
-        messages=messages,
-        model="llama-3.2-90b-vision-preview",
+    Args:
+        query (str): The user question or instruction.
+        image (PIL.Image): The image input.
+
+    Returns:
+        str: Model's text response.
+    """
+    encoded_image = encode_image(image)
+    image_data_uri = f"data:image/jpeg;base64,{encoded_image}"
+
+    headers = {
+        "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+        "Content-Type": "application/json"
+    }
+
+    payload = {
+        "model": "meta-llama/llama-3.2-11b-vision-instruct",
+        "messages": [
+            {
+                "role": "user",
+                "content": [
+                    {"type": "text", "text": query},
+                    {"type": "image_url", "image_url": {"url": image_data_uri}}
+                ]
+            }
+        ]
+    }
+
+    response = requests.post(
+        url="https://openrouter.ai/api/v1/chat/completions",
+        headers=headers,
+        data=json.dumps(payload)
     )
-    return response.choices[0].message.content
 
+    try:
+        response_json = response.json()
+    except json.JSONDecodeError:
+        raise Exception(f"Invalid JSON response: {response.text}")
+
+    if "choices" in response_json:
+        return response_json["choices"][0]["message"]["content"]
+    elif "error" in response_json:
+        raise Exception(f"OpenRouter API Error: {response_json['error']}")
+    else:
+        raise Exception(f"Unexpected response structure: {response_json}")
 
 def analyze_image_with_mmed_llama(query, image):
     prompt = f"[Image] {query}"
@@ -74,7 +113,7 @@ def analyze_image_with_mmed_llama(query, image):
     response = tokenizer.decode(outputs[0], skip_special_tokens=True)
     return response
 
-# Evaluation
+
 
 def evaluate_model(generate_fn, model_name):
     model_answers = []
@@ -87,7 +126,12 @@ def evaluate_model(generate_fn, model_name):
         question = example['question']
         ground_truth = example['answer']
 
-        model_response = generate_fn(question, image)
+        try:
+            model_response = generate_fn(question, image)
+        except Exception as e:
+            print(f"[ERROR] Skipping example due to: {e}")
+            model_response = ""
+
         model_answers.append(model_response)
         ground_truth_answers.append(ground_truth)
 
@@ -98,12 +142,12 @@ def evaluate_model(generate_fn, model_name):
     return F1
 
 # Evaluate both models
-f1_llama = evaluate_model(analyze_image_with_llama, "LLaMA 3.2 90B")
+f1_llama = evaluate_model(analyze_image_with_llama, "LLaMA 3.2 11B")
 f1_mmed_llama = evaluate_model(analyze_image_with_mmed_llama, "MMed-LLaMA 3")
 
 # Plot
 plt.figure(figsize=(8,5))
-sns.histplot(f1_llama.tolist(), bins=10, kde=True, color="#00BFC4", edgecolor='black', label='LLaMA 3.2 90B')
+sns.histplot(f1_llama.tolist(), bins=10, kde=True, color="#00BFC4", edgecolor='black', label='LLaMA 3.2 11B')
 sns.histplot(f1_mmed_llama.tolist(), bins=10, kde=True, color="#F8766D", edgecolor='black', label='MMed-LLaMA 3')
 plt.xlabel('BERTScore F1', fontsize=12)
 plt.ylabel('Frequency', fontsize=12)
@@ -113,7 +157,7 @@ plt.legend()
 plt.tight_layout()
 plt.show()
 
-"""- LLaMA 3.2 90B Average BERTScore F1: 0.8584278225898743
+"""- LLaMA 3.2 11B Average BERTScore F1: 0.8491748571395874
 - MMed-LLaMA 3 Average BERTScore F1: 0.7670438289642334
 
 Here is the meaning of BERTScore F1 <br>
@@ -122,5 +166,6 @@ Here is the meaning of BERTScore F1 <br>
 0.80 - 0.85 | Acceptable but Room for Improvement | Maybe minor missing info / wording <br>
 <0.80 | Weak Similarity | Likely incomplete / off-topic answers
 
-The histogram above compares the BERTScore F1 distributions between LLaMA 3.2 90B Vision-Instruct and MMed-LLaMA 3 on 30 randomly selected samples from our medical VQA dataset. As shown in the figure, LLaMA 3.2 90B demonstrates a significantly higher semantic similarity to the ground truth answers generated by GPT-4o, with an average BERTScore F1 of 0.8584. In contrast, MMed-LLaMA 3 yields a lower average BERTScore F1 of 0.7670, with most of its responses clustering around the 0.75 to 0.78 range. The clear separation between the two distributions indicates that LLaMA 3.2 90B consistently generates responses that are more semantically aligned and closer in meaning to the ground truth answers. This result highlights the superior language generation capability of LLaMA 3.2 90B in this medical VQA task compared to MMed-LLaMA 3, despite both models being evaluated on the same set of images and questions.
+The histogram above compares the BERTScore F1 distributions between LLaMA 3.2 11B Vision-Instruct and MMed-LLaMA 3 on 30 randomly selected samples from our medical VQA dataset. As shown in the figure, LLaMA 3.2 11B demonstrates a significantly higher semantic similarity to the ground truth answers generated by GPT-4o, with an average BERTScore F1 of 0.8584. In contrast, MMed-LLaMA 3 yields a lower average BERTScore F1 of 0.7670, with most of its responses clustering around the 0.75 to 0.78 range. The clear separation between the two distributions indicates that LLaMA 3.2 11B consistently generates responses that are more semantically aligned and closer in meaning to the ground truth answers. This result highlights the superior language generation capability of LLaMA 3.2 11B in this medical VQA task compared to MMed-LLaMA 3, despite both models being evaluated on the same set of images and questions.
 """
+
