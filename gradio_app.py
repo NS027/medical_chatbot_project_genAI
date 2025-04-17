@@ -66,7 +66,7 @@ def process_inputs(audio_filepath, image_filepath, target_language, user_text=No
     # Generate voice of the translated response
     voice_of_doctor = text_to_speech_with_gtts( 
         input_text= doctor_response,
-        output_filepath="final.mp3"
+        output_filepath="audio/final.mp3"
     )
 
     return user_input, doctor_response, summary, translated_response

@@ -66,4 +66,4 @@ def text_to_speech_with_gtts(input_text, output_filepath="output.mp3"):
     except Exception as e:
         print(f"An error occurred while trying to play the audio: {e}")
 
-text_to_speech_with_gtts(input_text, output_filepath="gtts_output.mp3")
+text_to_speech_with_gtts(input_text, output_filepath="audio/gtts_output.mp3")
