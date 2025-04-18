@@ -1,5 +1,5 @@
 # 🩺 AI Doctor: Real-Time Medical Assistance with Multimodal Large Language Model
-
+![AI Doctor Banner](./model_fine_tune/assets/banner.jpg)
 ## 🧠 Overview
 
 This project introduces a real-time **AI Doctor** chatbot powered by a **Multimodal Large Language Model (LLM)**. It supports both **voice** and **text** input, understands **medical images**, and provides responses via **speech** and **text**. Additional features include summarization and translation — offering a natural and accessible healthcare assistant.
