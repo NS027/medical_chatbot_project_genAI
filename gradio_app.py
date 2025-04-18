@@ -73,60 +73,63 @@ def process_inputs(audio_filepath, image_filepath, target_language, user_text=No
 # Gradio UI
 with gr.Blocks(theme=gr.themes.Soft(primary_hue="purple", secondary_hue="blue")) as demo:
     gr.Markdown("<h1 style='text-align: center; font-weight: bold;'>🧑‍⚕️ AI Doctor: Vision and Voice-Powered Diagnosis 🧑‍⚕️</h1>")
+    
+    gr.Markdown("<p style='text-align: center; font-size: 18px;'>🎤 Use your microphone or type your symptoms directly. You can also upload a medical image for visual diagnosis.</p>")
 
-    with gr.Column():
-        with gr.Row():
-            gr.Markdown(
-                "<p style='text-align: center; font-size: 18px;'>🎤 Use your microphone or type your symptoms directly. "
-                "You can also upload a medical image for visual diagnosis.</p>"
-            )
-
-        with gr.Row():
-            with gr.Column():
-                audio_input = gr.Audio(sources=["microphone"], type="filepath", label="Record your Symptoms")
-                text_input = gr.Textbox(label="Or type your symptoms here")
-                speech_to_text_output = gr.Textbox(label="Processed Input (Text)")
-
+    # Patient Input Section
+    gr.Markdown("### 📝 Patient Input")
+    with gr.Row():
+        with gr.Column():
+            audio_input = gr.Audio(sources=["microphone"], type="filepath", label="Record your Symptoms")
+            text_input = gr.Textbox(label="Or type your symptoms here")
+            speech_to_text_output = gr.Textbox(label="Processed Input (Text)", lines=2)
+        with gr.Column():
             image_input = gr.Image(type="filepath", label="Upload Medical Image")
 
-        with gr.Row():
-            doctor_response = gr.Textbox(label="Doctor's Response")
-            summary = gr.Textbox(label="Summary")
+    # AI Doctor's Output + Settings
+    gr.Markdown("### 📄 AI Doctor's Output")
+    with gr.Row():
+        # Left: AI Doctor's response
+        with gr.Column(scale=2):
+            doctor_response = gr.Textbox(label="🩺 Doctor's Response", lines=4)
+            summary = gr.Textbox(label="🧠 Summary", lines=3)
+            translated_response = gr.Textbox(label="🌍 Translated Response", lines=4)
 
-        with gr.Row():
-            translated_response = gr.Textbox(label="Translated Response")
-            
+        # Right: Advanced Settings
+        with gr.Column(scale=1):
+            gr.Markdown("### ⚙️ Advanced Settings")
             language_dropdown = gr.Dropdown(
                 choices=["ita", "spa", "fra"],
                 value="fra",
-                label="Select translation language"
+                label="🌐 Translation Language"
             )
             model_dropdown = gr.Dropdown(
-                    choices=["llama (advance)", "gemma (basic)"],
-                    value="llama (advance)",
-                    label="Choose Model"
-                )
-            
-        gr.Markdown(
-            "<p style='color: purple; text-align: center;'>⚠️ Please select both a model and a target language before clicking Diagnose.</p>"
-        )
+                choices=["llama (advance)", "gemma (basic)"],
+                value="llama (advance)",
+                label="🧠 Choose Model"
+            )
+            gr.Markdown("<p style='color: #c62828; font-size: 14px;'>⚠️ Please select both a model and a target language before clicking Diagnose.</p>")
 
-        process_button = gr.Button("Diagnose")
+    # Diagnose Button
+    with gr.Row():
+        process_button = gr.Button("🩻 Diagnose", elem_id="diagnose-button")
 
-        gr.Markdown(
-            """
-            <details style="margin-top: 15px; font-size: 15px;">
-            <summary>⚠️ <strong>Important Disclaimer — Please Read</strong></summary>
-            <div style="margin-top: 10px; color: #b71c1c;">
-                This AI Doctor is <strong>not a licensed medical professional</strong> and should <strong>not be used as a substitute</strong> for real medical advice, diagnosis, or treatment.<br><br>
-                For any health concerns, symptoms, or medical decisions, you should <strong>always consult a qualified healthcare provider</strong>.<br><br>
-                Uploaded images are processed by machine learning models and <strong>not stored</strong>, but please be aware that you are uploading at your own risk. <strong>Do not submit personal, sensitive, or identifying medical images.</strong>
-            </div>
-            </details>
-            """
-        )
+    # Disclaimer
+    gr.Markdown(
+        """
+        <details style="margin-top: 20px; font-size: 15px;">
+          <summary>⚠️ <strong>Important Disclaimer — Please Read</strong></summary>
+          <div style="margin-top: 10px; color: #b71c1c;">
+            This AI Doctor is <strong>not a licensed medical professional</strong> and should <strong>not be used as a substitute</strong> for real medical advice, diagnosis, or treatment.<br><br>
+            For any health concerns, symptoms, or medical decisions, you should <strong>always consult a qualified healthcare provider</strong>.<br><br>
+            Uploaded images are processed by machine learning models and <strong>not stored</strong>, but please be aware that you are uploading at your own risk. <strong>Do not submit personal, sensitive, or identifying medical images.</strong>
+          </div>
+        </details>
+        """
+    )
 
-        process_button.click(
+    # Connect the logic
+    process_button.click(
         fn=process_inputs,
         inputs=[audio_input, image_input, language_dropdown, text_input, model_dropdown],
         outputs=[speech_to_text_output, doctor_response, summary, translated_response]
