@@ -98,7 +98,7 @@ We evaluated model performance using **BERTScore F1** on 30 samples from our dat
     > but you may switch to the free version:  
     > `meta-llama/llama-3.2-11b-vision-instruct:free`
 
-### 🛠️Setup Instructions
+### 🛠️Setup steps
 
 1. Clone this repository:
    ```bash
