@@ -1,5 +1,31 @@
+<p align="center">
+  <img src="./model_fine_tune/assets/banner.jpg" alt="AI Doctor Banner" width="100%" />
+</p>
+
+<p align="center"><em>Healthcare guidance through multimodal generative AI.</em></p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/version-1.0.0-blue" />
+  <img src="https://img.shields.io/badge/license-MIT-green" />
+  <img src="https://img.shields.io/badge/python-3.12-yellow" />
+  <img src="https://img.shields.io/badge/LoRA-enabled-ff69b4" />
+</p>
+
+---
+
+**A powerful multimodal assistant for healthcare: process voice, text, and medical images to deliver personalized, context-aware medical advice in real time.**
+
+---
+
+> 🧠 Powered by:  
+> - LLaMA 3.2 11B Vision-Instruct  
+> - Whisper-large-v3 for speech  
+> - PaliGemma & Qwen LoRA adapters for domain-specific logic  
+> - Hugging Face & Google TTS
+
+---
+
 # 🩺 AI Doctor: Real-Time Medical Assistance with Multimodal Large Language Model
-![AI Doctor Banner](./model_fine_tune/assets/banner.jpg)
 ## 🧠 Overview
 
 This project introduces a real-time **AI Doctor** chatbot powered by a **Multimodal Large Language Model (LLM)**. It supports both **voice** and **text** input, understands **medical images**, and provides responses via **speech** and **text**. Additional features include summarization and translation — offering a natural and accessible healthcare assistant.
