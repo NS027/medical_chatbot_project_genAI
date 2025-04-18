@@ -1,184 +1,144 @@
-# Medical ChatBot with Multimodal LLM
+# 🩺 AI Doctor: Real-Time Medical Assistance with Multimodal Large Language Model
 
+## 🧠 Overview
 
-### Overview
+This project introduces a real-time **AI Doctor** chatbot powered by a **Multimodal Large Language Model (LLM)**. It supports both **voice** and **text** input, understands **medical images**, and provides responses via **speech** and **text**. Additional features include summarization and translation — offering a natural and accessible healthcare assistant.
 
-This project aims to develop a real-time **Medical ChatBot** powered by a **Multimodal Large Language Model (LLM)**. The chatbot will be able to handle both text and voice inputs from patients, and provide responses in text and speech. It will also include features such as summarization and translation, functioning as a virtual doctor.
+---
 
-Here shows our user interface:
-![Alt text](UI.png)
+## 🌟 Features
 
-## Features
+- 🔍 **Multimodal LLM**  
+  Handles both text and image inputs for medical understanding  
+  _↪️ Implemented in `brain_of_the_doctor.py`_
 
-- **Multimodal LLM**: Processes both text and image inputs
-- **Speech-to-Text (STT)**: Converts patient speech to text using transcription models
-- **Text-to-Speech (TTS)**: Converts generated text responses to voice
-- **Interactive UI**: A user-friendly interface built with Gradio for interaction
+- 🗣️ **Speech-to-Text (STT)**  
+  Converts patient voice input into text using Whisper  
+  _↪️ Implemented in `voice_of_the_patient.py`_
 
-## Project Layout
+- 🔈 **Text-to-Speech (TTS)**  
+  Generates spoken responses from AI-generated answers  
+  _↪️ Implemented in `voice_of_the_doctor.py`_
 
-### Phase 1 – Setup the Brain of the Doctor (Multimodal LLM)
+- 💬 **Interactive Gradio UI**  
+  Provides a simple, real-time interface for user interaction  
+  _↪️ Implemented in `gradio_app.py`_
+---
 
-- Setup **GROQ API key**, **OpenRouter API Key**, **Hugging Face token** for 
-paligemma-3b-pt-224 
-- Convert images to required formats
-- Setup and integrate **Multimodal LLM**
+## 🧪 Our Contributions
 
-### Phase 2 – Setup Voice of the Patient
+### 1. 🧑‍⚕️ AI Doctor Application
+A conversational AI that helps users make informed decisions about seeking medical care — potentially reducing unnecessary visits and improving access.
+  
+<p align="center">
+  <img src="UI.png" alt="User Interface" width="80%"/>
+</p>
 
-- Configure **Audio Recorder** using `ffmpeg` & `portaudio`
-- Implement **Speech-to-Text (STT)** for transcription
+---
 
-### Phase 3 – Setup Voice of the Doctor
+### 2. 🗂️ Custom Dataset Creation
 
-- Implement **Text-to-Speech (TTS)** using `gTTS` 
-- Generate voice responses from the chatbot’s text output
+Most existing medical datasets lack paired image-text data and focus on modalities like CT or PET scans — not suitable for real-world symptom images. To address this:
 
-### Phase 4 – Setup UI for the VoiceBot
+- We built a medical VQA dataset using **user-uploaded images** and **GPT-4o-generated** Q&A pairs simulating real patient inquiries and expert-level answers.
+🤗 Dataset available on [Hugging Face](https://huggingface.co/datasets/SiyunHE/medical-pilagemma-lora)
+📂 Data creation details: See [`data_creation/`](data_creation)
 
-- Design an interactive **VoiceBot UI** using `Gradio`
+---
 
-## Installation
+### 3. 🔧 Fine-tuning with LoRA
 
-### Prerequisites
+We fine-tuned **PaliGemma** using **LoRA** on our dataset to build a lightweight alternative to **LLaMA 3.2 11B Vision-Instruct**.
 
-- Python 3.11+
-- `ffmpeg` and `portaudio`
-- Required libraries (install using the following command):
-  ```sh
-  pip install openai gradio pydub ffmpeg-python speechrecognition gtts elevenlabs
-  ```
+- Applied LoRA to cross-attention layers for efficient adaptation
+- Trained with Hugging Face Trainer on **Google Colab A100**
+- Learning rate: `5e-5`, Batch size: `4`, Epochs: `3`
+- Outperforms base PaliGemma on medical VQA, with a smaller footprint
 
-### Setup Instructions
+🤗 [Fine-tuned model on Hugging Face](https://huggingface.co/SiyunHE/medical-pilagemma-lora)  
+📁 Fine-tuning details: See [`experiments/`](experiments)
+
+---
+
+### 4. 📊 Model Evaluation
+
+We evaluated model performance using **BERTScore F1** on 30 samples from our dataset, comparing:
+
+- 🔬 **LLaMA-3.2-11B-Vision-Instruct** (model we used)
+- 🧬 **MMed-LLaMA 3** (trained on medical data)
+
+<p align="center">
+  <img src="evaluation/answer_similarity_comparison.png" alt="Evaluation Chart" width="80%">
+</p>
+
+📈 Results: Our model consistently achieves higher semantic alignment with ground truth answers, indicating stronger response quality for real-world medical VQA tasks.
+
+📁 evaluation details: See [`evaluation/`](evaluation)
+
+---
+
+## ⚙️ Setup Instructions
+
+### 🛠️ Prerequisites
+
+- 🐍 **Python 3.11+**
+
+- 🔑 **Environment Variables:**
+ 👉 See `.env.example` for required environment variables.
+
+  - `GROQ_API_KEY` — _(Free)_  
+    Required for **speech-to-text (STT)** using `whisper-large-v3`.
+
+  - `HF_TOKEN` — _(Free)_  
+    Needed to load the **Google PaliGemma** model: `google/paligemma-3b-pt-224`.
+
+  - `OPENROUTER_API_KEY` — _(Paid or Free)_  
+    Used to access **meta-llama/llama-3.2-11b-vision-instruct**  
+    > We currently use the **paid version** for more stable performance,  
+    > but you may switch to the free version:  
+    > `meta-llama/llama-3.2-11b-vision-instruct:free`
+
+### 🛠️Setup Instructions
 
 1. Clone this repository:
-   ```sh
-   git clone https://github.com/yourusername/medical_chat_bot.git
-   cd medical_chat_bot
+   ```bash
+   git clone medical_chatbot_project_genAI
+   cd medical_chatbot_project_genAI
    ```
-2. Set up the environment:
-   ```sh
-   python -m venv venv
-   source venv/bin/activate  # On Windows, use `venv\Scripts\activate`
+2. create a new environment with conda (recommend)
+   ```bash
+   conda create --name ai_doctor python=3.11
    ```
-3. Install dependencies:
-   ```sh
+   create a new environment without conde
+   ```bash
+   python3 -m venv venv
+   source venv/bin/activate   # On macOS/Linux
+   .\venv\Scripts\activate     # On Windows
+   ```
+3. activate the enviornment
+   ```bash
+   conda activate ai_doctor
+   ```
+4. Install dependencies:
+   ```bash
    pip install -r requirements.txt
    ```
-4. Set up **GROQ API Key**:
-   ```sh
-   export GROQ_API_KEY='your_api_key_here'
+5. start the application
+   ```bash
+   gradio gradio_app.py
    ```
 
-## Run Environment
 
-### 1. If you just need to run the Python file
 
-First, create a virtual environment with Python 3.11:
+### 🚀 Future Development
 
-```bash
-python3.11 -m venv myenv
-```
+- Add real-time medical knowledge via **Retrieval-Augmented Generation (RAG)** to overcome LLM knowledge cutoffs.
+- Use **Medical Communication Protocols (MCP)** for better scalability and healthcare system integration.
+- Expand **language support** and enhance **medical reasoning** capabilities.
+- Conduct **clinical validation** to assess safety and real-world effectiveness.
 
-#### For macOS/Linux:
 
-Activate the virtual environment using:
 
-```bash
-source myenv/bin/activate
-```
-
-#### For Windows:
-
-Activate the virtual environment using:
-
-```bash
-myenv\Scripts\activate
-```
-
-### The Requirements
-
-To install the required packages, run:
-
-```bash
-pip install -r requirements.txt
-```
-
-### 2. If you need to run under a Conda environment
-
-Navigate to your project directory:
-
-```
-cd path/to/your/file/
-```
-
-Create a Conda environment with Python 3.11:
-
-```
-conda create --prefix ./venv python=3.11
-```
-
-Activate the environment:
-
-```
-conda activate ./venv
-```
-
----
-
-### 📦 Install Requirements
-
-Install the Python packages listed in the cleaned requirements file:
-
-```
-pip install -r requirements_conda.txt
-```
-
----
-
-### 🔊 Install PyAudio (using Conda)
-
-To avoid build errors with PyAudio on macOS, install it via Conda:
-
-```
-conda install -c conda-forge pyaudio
-```
-
----
-
-### 🌐 Install spaCy Language Model
-
-`en_core_web_sm` is not available on PyPI and must be installed using spaCy:
-
-```
-python -m spacy download en_core_web_sm
-```
-
-### .env File
-
-Please refer to `.env.example` for setting up your environment variables.
-
-## Running the ChatBot
-
-To start the chatbot with the UI:
-
-```sh
-python gradio_app.py
-```
-
-## Future Enhancements
-
-- Support for multiple languages
-- Improved speech synthesis with real-time response
-- Integration with electronic health records (EHR)
-
-## License
-
-This project is open-source and available under the MIT License.
-
-## Contributors
-
-- **Contributors** – Open for contributions!
-
-## Reference:
+## 📚Reference:
 https://github.com/AIwithhassan/ai-doctor-2.0-voice-and-vision
+https://github.com/RyanWangZf/MedCLIP
