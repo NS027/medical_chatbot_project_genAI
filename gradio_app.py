@@ -72,6 +72,7 @@ def process_inputs(audio_filepath, image_filepath, target_language, user_text=No
 
 # Gradio UI
 with gr.Blocks(theme=gr.themes.Soft(primary_hue="purple", secondary_hue="blue")) as demo:
+
     gr.Markdown("<h1 style='text-align: center; font-weight: bold;'>🧑‍⚕️ AI Doctor: Vision and Voice-Powered Diagnosis 🧑‍⚕️</h1>")
     
     gr.Markdown("<p style='text-align: center; font-size: 18px;'>🎤 Use your microphone or type your symptoms directly. You can also upload a medical image for visual diagnosis.</p>")
