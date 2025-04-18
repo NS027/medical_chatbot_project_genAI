@@ -46,17 +46,36 @@ Most existing medical datasets lack paired image-text data and focus on modaliti
 
 ---
 
-### 3. 🔧 Fine-tuning with LoRA
+### 3. 🔧 Fine-Tuning with LoRA
 
-We fine-tuned **PaliGemma** using **LoRA** on our dataset to build a lightweight alternative to **LLaMA 3.2 11B Vision-Instruct**.
+We fine-tuned two domain-specific lightweight language models using **LoRA** to extend the capabilities of our main 11B multimodal backbone (LLaMA 3.2 Vision-Instruct). These LoRA adapters enable **fast, targeted medical reasoning on lower-resource devices**.
 
-- Applied LoRA to cross-attention layers for efficient adaptation
-- Trained with Hugging Face Trainer on **Google Colab A100**
-- Learning rate: `5e-5`, Batch size: `4`, Epochs: `3`
-- Outperforms base PaliGemma on medical VQA, with a smaller footprint
 
-🤗 [Fine-tuned model on Hugging Face](https://huggingface.co/SiyunHE/medical-pilagemma-lora)  
+#### 🧠 PaliGemma LoRA – Medical VQA
+
+We fine-tuned **PaliGemma** using LoRA on a custom medical image-question-answering dataset to build a lightweight alternative to our main vision-language model.
+
+- Applied LoRA to **cross-attention layers** for multimodal alignment  
+- Trained using Hugging Face Trainer on **Google Colab A100**  
+- **Hyperparameters**: learning rate `5e-5`, batch size `4`, epochs `3`  
+- Result: Outperforms base PaliGemma on domain-specific VQA tasks
+
+🤗 [Model on Hugging Face](https://huggingface.co/SiyunHE/medical-pilagemma-lora)  
 📁 Fine-tuning details: See [`experiments/`](experiments)
+
+
+#### 🦷 Qwen2.5-1.5B LoRA – Dental Code Explanations
+
+We also fine-tuned **Qwen2.5-1.5B**, a small open-source causal LLM, to specialize in **explaining ADA dental procedure codes** in a patient-friendly way.
+
+- Used **Low-Rank Adaptation** for parameter-efficient training  
+- Trained for 1 epoch on a consumer GPU (GTX 1060, 6GB)  
+- Instruction-style prompting using real medical code descriptions  
+- Output shows strong format compliance and domain-specific vocabulary
+
+📁 Fine-tuning notebook: [`/model_fine_tune/Finetun_LoRA_Qwen_Dental.ipynb`](model_fine_tune/Finetun_LoRA_Qwen_Dental.ipynb)  
+🤗 [LoRA Adapter](https://huggingface.co/BirdieByte1024/Qwen2.5-1.5B-LoRA-dental)  
+🤗 [Merged Model](https://huggingface.co/BirdieByte1024/Qwen2.5-1.5B-dental-full)
 
 ---
 
