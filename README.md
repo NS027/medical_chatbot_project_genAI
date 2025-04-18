@@ -140,5 +140,5 @@ We evaluated model performance using **BERTScore F1** on 30 samples from our dat
 
 
 ## 📚Reference:
-https://github.com/AIwithhassan/ai-doctor-2.0-voice-and-vision
+https://github.com/AIwithhassan/ai-doctor-2.0-voice-and-vision <br>
 https://github.com/RyanWangZf/MedCLIP
