@@ -24,8 +24,7 @@ Guidelines for your response:
 - Write as if speaking directly to a patient in a real consultation.
 - Be clear, concise, and warm.
 """
-# system_prompt_gemma="""You have to act as a professional doctor and analyze the image.
-#             What's in this image?. Do you find anything wrong with it medically?"""
+
 def process_inputs(audio_filepath, image_filepath, target_language, user_text=None, model_choice="llama"):
     if user_text:
         user_input = user_text
@@ -108,8 +107,24 @@ with gr.Blocks(theme=gr.themes.Soft(primary_hue="purple", secondary_hue="blue"))
                     label="Choose Model"
                 )
             
+        gr.Markdown(
+            "<p style='color: purple; text-align: center;'>⚠️ Please select both a model and a target language before clicking Diagnose.</p>"
+        )
 
         process_button = gr.Button("Diagnose")
+
+        gr.Markdown(
+            """
+            <details style="margin-top: 15px; font-size: 15px;">
+            <summary>⚠️ <strong>Important Disclaimer — Please Read</strong></summary>
+            <div style="margin-top: 10px; color: #b71c1c;">
+                This AI Doctor is <strong>not a licensed medical professional</strong> and should <strong>not be used as a substitute</strong> for real medical advice, diagnosis, or treatment.<br><br>
+                For any health concerns, symptoms, or medical decisions, you should <strong>always consult a qualified healthcare provider</strong>.<br><br>
+                Uploaded images are processed by machine learning models and <strong>not stored</strong>, but please be aware that you are uploading at your own risk. <strong>Do not submit personal, sensitive, or identifying medical images.</strong>
+            </div>
+            </details>
+            """
+        )
 
         process_button.click(
         fn=process_inputs,

@@ -1,13 +1,8 @@
-# Additional imports for NLP
-import spacy
 import os
 import json
 import base64
 import requests
 from dotenv import load_dotenv
-
-# Load English tokenizer, tagger, parser, NER and word vectors
-nlp = spacy.load("en_core_web_sm")
 
 # Step1: Setup GROQ API key
 # import os
@@ -135,6 +130,12 @@ model = PeftModel.from_pretrained(base_model, model_id).eval()
 
 # Inference function
 def analyze_with_gemma(query, image_path):
+    """
+    Analyze the image with the query using the Gemma model.
+    :param query: Text query to analyze the image.
+    :param image_path: Path to the image file.
+    :return: Response from the model.
+    """
     image = Image.open(image_path).convert("RGB")
     query = query.strip()
     prompt = "<image> " + query
